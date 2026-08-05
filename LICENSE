@@ -1,0 +1,292 @@
+PROPRIETARY SOFTWARE NOTICE AND RESTRICTIVE LICENSE
+ALL RIGHTS RESERVED
+
+Copyright © 2026 Arshia Toliat. All rights reserved.
+
+Effective Date: August 4, 2026
+
+1. OWNERSHIP
+
+This software, including but not limited to its source code, object code, algorithms, architecture, designs, interfaces, databases, documentation, configuration files, images, written materials, concepts, and all associated files and materials, is proprietary and confidential.
+
+All legal and beneficial ownership rights, copyrights, intellectual-property rights, and other rights relating to the software remain exclusively with Arshia Toliat, referred to in this document as the “Author.”
+
+Possession of, access to, or visibility of this software does not transfer ownership and does not grant any licence, permission, authorization, or other legal right.
+
+2. NO LICENCE OR PERMISSION GRANTED
+
+This document does not grant any person or organization permission to use the software.
+
+No licence, whether express, implied, statutory, or otherwise, is granted under any copyright, patent, trademark, trade-secret, contractual, or other intellectual-property right of the Author.
+
+Access to this repository or software does not provide permission to use it for personal, educational, academic, research, testing, evaluation, internal, nonprofit, governmental, or commercial purposes.
+
+All rights not expressly granted through a separate written and notarized authorization signed by the Author are reserved.
+
+3. WRITTEN AND NOTARIZED AUTHORIZATION REQUIRED
+
+Any access, possession, use, copying, downloading, cloning, reproduction, modification, adaptation, execution, testing, publication, disclosure, distribution, transfer, sublicensing, sale, commercialization, reverse engineering, decompilation, disassembly, or creation of derivative works requires the Author’s prior written and notarized permission.
+
+Permission is valid only when it is:
+
+a. provided in writing;
+
+b. signed by the Author;
+
+c. notarized by a legally authorized notary or equivalent official; and
+
+d. specific about the person receiving permission, the permitted purpose, the authorized software, and the duration of the permission.
+
+Verbal permission, informal messages, emails, repository access, contributor access, employment, payment, collaboration, or possession of a copy shall not constitute authorization unless confirmed through a separate written and notarized agreement signed by the Author.
+
+4. PROHIBITED ACTIVITIES
+
+Without the Author’s prior written and notarized permission, no person or organization may:
+
+a. copy, download, clone, reproduce, store, or retain the software;
+
+b. install, execute, operate, test, evaluate, or otherwise use the software;
+
+c. modify, adapt, translate, improve, update, or create derivative works from the software;
+
+d. publish, disclose, display, transmit, share, distribute, transfer, sublicense, lease, sell, or commercialize the software;
+
+e. reverse engineer, decompile, disassemble, decode, inspect, or attempt to discover the software’s source code, structure, logic, algorithms, or internal operation;
+
+f. use any portion of the software in another product, service, project, repository, application, website, system, model, dataset, or commercial activity;
+
+g. use the software to train, test, evaluate, develop, or improve any artificial-intelligence system, machine-learning system, automated code-generation system, or dataset;
+
+h. remove, alter, conceal, or misrepresent any copyright, ownership, attribution, confidentiality, or legal notice;
+
+i. claim ownership, authorship, invention, or creation of the software or any portion of it;
+
+j. permit another person or organization to access or use the software; or
+
+k. use the software in any way not specifically authorized by the Author.
+
+5. CONFIDENTIALITY
+
+The software and all associated information are confidential.
+
+Any person who obtains access to the software must protect it from unauthorized access, copying, disclosure, loss, theft, publication, or distribution.
+
+Access to a private repository does not make the software public and does not waive its confidential or proprietary status.
+
+No person may disclose the software or any information learned from the software to another person or organization without the Author’s prior written and notarized permission.
+
+6. LIMITED AUTHORIZED USE
+
+When the Author provides separate written and notarized permission, the recipient may use the software only within the exact limits described in that authorization.
+
+Any permission granted by the Author shall be:
+
+a. personal and non-transferable;
+
+b. non-exclusive;
+
+c. limited to the stated purpose;
+
+d. limited to the stated duration;
+
+e. revocable by the Author unless otherwise expressly agreed in writing; and
+
+f. subject to this notice and any additional conditions imposed by the Author.
+
+No authorized user may sublicense, transfer, share, assign, or provide their authorization to another person or organization.
+
+7. UNAUTHORIZED USE
+
+Any access, possession, use, copying, modification, disclosure, distribution, or other activity that is not expressly authorized through a separate written and notarized agreement is unauthorized and strictly prohibited.
+
+Unauthorized activity may constitute copyright infringement, breach of confidence, breach of contract, misappropriation of trade secrets, or another legal violation.
+
+The Author reserves the right to seek any available legal remedy, including injunctive relief, recovery of damages, recovery of profits, legal costs, investigation costs, and any other relief permitted by applicable law.
+
+8. NO WARRANTY OR GUARANTEE
+
+THE SOFTWARE IS PROVIDED “AS IS” AND “AS AVAILABLE.”
+
+THE AUTHOR MAKES NO WARRANTY, GUARANTEE, REPRESENTATION, PROMISE, OR CONDITION OF ANY KIND, WHETHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE.
+
+WITHOUT LIMITING THE ABOVE, THE AUTHOR DOES NOT WARRANT OR GUARANTEE THAT THE SOFTWARE:
+
+a. is accurate, complete, reliable, secure, safe, available, or error-free;
+
+b. will operate continuously or without interruption;
+
+c. will be compatible with any hardware, software, system, network, service, or operating environment;
+
+d. will meet any particular requirement, purpose, expectation, standard, or result;
+
+e. is suitable for personal, professional, commercial, academic, medical, financial, legal, safety-related, or other use;
+
+f. is free from defects, vulnerabilities, viruses, harmful code, data loss, or security risks; or
+
+g. does not infringe the rights of another person or organization.
+
+To the maximum extent permitted by applicable law, all implied warranties and conditions, including merchantability, fitness for a particular purpose, quality, durability, title, and non-infringement, are excluded.
+
+9. ASSUMPTION OF RISK
+
+Any person who accesses, possesses, installs, operates, evaluates, modifies, or uses the software does so entirely at their own risk.
+
+The user is solely responsible for:
+
+a. determining whether the software is suitable for their intended purpose;
+
+b. reviewing, testing, and validating the software before use;
+
+c. protecting their systems, devices, networks, accounts, and data;
+
+d. maintaining appropriate backups;
+
+e. complying with all applicable laws, regulations, contractual obligations, industry standards, and third-party rights; and
+
+f. all decisions, actions, results, and consequences connected with their use or possession of the software.
+
+The user accepts full responsibility for any harm, loss, damage, error, violation, or legal consequence arising from the software or its use.
+
+10. LIMITATION OF LIABILITY
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE AUTHOR SHALL NOT BE LIABLE FOR ANY CLAIM, LIABILITY, LOSS, DAMAGE, COST, EXPENSE, PENALTY, OR LEGAL CONSEQUENCE ARISING FROM OR CONNECTED WITH THE SOFTWARE.
+
+This exclusion includes, without limitation:
+
+a. direct, indirect, incidental, special, consequential, exemplary, or punitive damages;
+
+b. loss of profits, revenue, business, contracts, opportunities, reputation, goodwill, or anticipated savings;
+
+c. loss, corruption, destruction, exposure, or unauthorized disclosure of data;
+
+d. business interruption, service interruption, system failure, network failure, or device failure;
+
+e. security incidents, unauthorized access, cyberattacks, malware, vulnerabilities, or privacy breaches;
+
+f. personal injury, property damage, financial loss, regulatory action, or third-party claims;
+
+g. errors, omissions, inaccurate results, incorrect decisions, or failed outcomes; and
+
+h. legal fees, regulatory penalties, investigation costs, or compliance expenses.
+
+This limitation applies regardless of the legal theory involved and regardless of whether the Author was informed that such loss or damage was possible.
+
+11. USER RESPONSIBILITY AND LEGAL LIABILITY
+
+The user is solely and fully responsible for their access to, possession of, and use of the software.
+
+Any legal responsibility, liability, obligation, claim, damage, loss, penalty, violation, or consequence resulting from the user’s possession or use of the software shall remain with the user and not with the Author.
+
+The user is responsible for any activity performed through their account, device, organization, employee, contractor, agent, representative, or system.
+
+The Author shall not be responsible for how the software is used, modified, distributed, implemented, interpreted, or relied upon by any user.
+
+12. INDEMNIFICATION
+
+To the maximum extent permitted by applicable law, any person or organization that accesses, possesses, or uses the software agrees to indemnify, defend, and hold harmless the Author from all claims, proceedings, liabilities, damages, losses, penalties, judgments, settlements, costs, and expenses arising from or connected with:
+
+a. their access to, possession of, or use of the software;
+
+b. their violation of this notice;
+
+c. their violation of any applicable law, regulation, contract, or third-party right;
+
+d. their modification, distribution, disclosure, or implementation of the software; or
+
+e. any claim made by another person or organization relating to their actions.
+
+This obligation includes reasonable legal fees, investigation expenses, court costs, and enforcement costs.
+
+13. THIRD-PARTY COMPONENTS
+
+The software may contain or interact with third-party software, libraries, packages, services, APIs, tools, or materials.
+
+Third-party components remain subject to their own applicable licences and terms.
+
+Nothing in this notice changes or overrides the legal rights or obligations attached to third-party components.
+
+The user is solely responsible for identifying and complying with all applicable third-party terms.
+
+14. SECURITY AND RELIANCE
+
+The software must not be assumed to be secure, production-ready, suitable for critical systems, or appropriate for any particular environment.
+
+The software must not be used in circumstances where failure could reasonably result in death, personal injury, serious property damage, substantial financial loss, loss of essential services, or another serious consequence unless the Author has expressly authorized that use through a separate written and notarized agreement.
+
+15. TERMINATION
+
+Any authorization granted by the Author automatically terminates if the authorized person or organization:
+
+a. violates this notice or any separate agreement;
+
+b. exceeds the permitted scope of use;
+
+c. shares the software with an unauthorized person;
+
+d. fails to protect the confidentiality of the software; or
+
+e. infringes or challenges the Author’s ownership rights.
+
+Upon termination, the person or organization must immediately stop using the software and permanently delete or destroy all copies in their possession or control, except where retention is legally required.
+
+Termination does not remove any liability arising before termination.
+
+16. LICENCE MODIFICATIONS
+
+The Author reserves the unrestricted right to amend, update, replace, supplement, suspend, or withdraw this notice and licence at any time and at the Author’s sole discretion.
+
+The Author is not required to provide prior, direct, individual, written, or personal notice of any amendment, update, replacement, suspension, or withdrawal.
+
+Unless otherwise stated by the Author, an updated version becomes effective immediately when it is published in the repository or otherwise made available by the Author.
+
+To the maximum extent permitted by applicable law, continued access to, possession of, or use of the software after an updated version becomes effective constitutes acceptance of the updated version.
+
+Each person accessing, possessing, or using the software is responsible for reviewing the current version of this notice before accessing, possessing, copying, or using the software.
+
+An updated version may add, remove, or modify restrictions, responsibilities, disclaimers, conditions, or limitations.
+
+No amendment or update shall be interpreted as granting permission to use the software unless the Author expressly grants that permission through a separate written and notarized authorization.
+
+Where an updated provision cannot legally apply to conduct that occurred before the update, it shall apply to all access, possession, copying, modification, or use occurring on or after its effective date.
+
+17. NO WAIVER
+
+A failure or delay by the Author in exercising or enforcing any right or provision shall not constitute a waiver of that right or provision.
+
+A waiver is valid only when it is provided in writing and signed by the Author.
+
+A waiver concerning one violation does not waive any past, present, or future violation.
+
+18. SEVERABILITY
+
+If any provision of this notice is found to be invalid, illegal, or unenforceable, that provision shall be interpreted or limited to the minimum extent necessary to make it enforceable.
+
+If it cannot be made enforceable, it shall be removed without affecting the validity or enforceability of the remaining provisions.
+
+19. NO ASSIGNMENT
+
+No person or organization may assign, transfer, delegate, sublicense, or otherwise dispose of any permission, authorization, responsibility, or obligation relating to the software without the Author’s prior written and notarized permission.
+
+Any attempted assignment or transfer without such permission is invalid.
+
+20. GOVERNING LAW AND JURISDICTION
+
+To the extent permitted by applicable law, this notice and any dispute relating to the software shall be governed by the laws of the Province of British Columbia and the applicable federal laws of Canada.
+
+Any legal proceeding relating to the software shall be brought before a court or tribunal with jurisdiction in British Columbia, Canada, unless the Author agrees otherwise in writing or applicable law requires another jurisdiction.
+
+21. ENTIRE NOTICE
+
+This notice represents the complete general terms imposed by the Author regarding unauthorized access to and use of the software.
+
+Any separate permission, licence, employment agreement, contractor agreement, confidentiality agreement, or intellectual-property assignment must be in writing.
+
+Where a separate written and notarized agreement signed by the Author directly conflicts with this notice, the separate agreement shall control only for the specific person, software, purpose, and period identified in that agreement.
+
+22. RESERVATION OF RIGHTS
+
+All rights are reserved.
+
+No right, permission, licence, authorization, immunity, ownership interest, or other benefit is granted except through a separate written and notarized agreement signed by the Author.
+
+Copyright © 2026 Arshia Toliat. All rights reserved.
