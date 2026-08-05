@@ -73,6 +73,14 @@ Then add your YouTube API credentials to `/opt/socialbot/.env` and restart:
 sudo systemctl restart socialbot socialbot-worker
 ```
 
+### Your own PC (Windows, running in the background)
+
+If you want the bot running on a desktop or laptop rather than a server -
+web interface on `localhost`, automation running quietly in the background -
+follow **[CONFIGURE_LOCAL.md](CONFIGURE_LOCAL.md)**. It is a step-by-step
+Windows guide covering ffmpeg, the `.env` file, the database, a Task Scheduler
+background task, and connecting YouTube over `http://localhost`.
+
 ### Local machine (development)
 
 ```bash
