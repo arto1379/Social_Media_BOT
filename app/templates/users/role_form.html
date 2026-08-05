@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "partials/_field.html" import render_field %}
+{% block title %}{{ 'Edit role' if role else 'Add role' }} - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>{{ 'Edit role' if role else 'Add role' }}</h1>
+        <p class="subtitle">A role is a named bundle of permissions.</p>
+    </div>
+</div>
+
+<form method="post" novalidate>
+    {{ form.hidden_tag() }}
+    <div class="card" style="max-width:760px">
+        {{ render_field(form.name) }}
+        {{ render_field(form.description) }}
+        <hr class="divider">
+        {{ render_field(form.permissions) }}
+    </div>
+    <div class="btn-row">
+        <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+        <a class="btn" href="{{ url_for('users.index') }}">Cancel</a>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Audit log - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Audit log</h1>
+        <p class="subtitle">
+            Who changed what, most recent first. Entries written by the
+            background worker show "system" as the actor.
+        </p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>When</th><th>Who</th><th>Action</th><th>Target</th><th>Detail</th><th>IP</th></tr></thead>
+            <tbody>
+            {% for entry in entries %}
+            <tr>
+                <td class="small nowrap">{{ entry.created_at|datetime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td class="small">{{ entry.username or 'system' }}</td>
+                <td><span class="badge badge-neutral">{{ entry.action }}</span></td>
+                <td class="small faint">
+                    {% if entry.target_type %}{{ entry.target_type }} #{{ entry.target_id }}{% else %}-{% endif %}
+                </td>
+                <td class="small">{{ entry.detail }}</td>
+                <td class="small faint mono">{{ entry.ip_address or '-' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="table-empty">Nothing recorded yet.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

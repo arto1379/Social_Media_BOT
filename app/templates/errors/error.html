@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} - {{ app_name }}{% endblock %}
+
+{# Rendered for 403/404/413/500. Works signed in or out, so it fills both
+   content blocks. #}
+{% macro body() %}
+<div class="error-shell">
+    <div>
+        <div class="error-code">{{ code }}</div>
+        <h1>{{ title }}</h1>
+        <p class="muted">{{ message }}</p>
+        <a class="btn btn-primary" href="{{ url_for('dashboard.index') }}">Back to the dashboard</a>
+    </div>
+</div>
+{% endmacro %}
+
+{% block content %}{{ body() }}{% endblock %}
+{% block anonymous_content %}<div class="content">{{ body() }}</div>{% endblock %}

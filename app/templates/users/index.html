@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Users and roles - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Users and roles</h1>
+        <p class="subtitle">
+            Give each person access to just the parts of the site they need.
+            Administrators always have every permission.
+        </p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-primary" href="{{ url_for('users.create') }}">Add user</a>
+        <a class="btn" href="{{ url_for('users.create_role') }}">Add role</a>
+    </div>
+</div>
+
+{# ---------------------------------------------------------------------- #}
+{# Users                                                                  #}
+{# ---------------------------------------------------------------------- #}
+<div class="card">
+    <div class="card-title">Users</div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr><th>Username</th><th>Name</th><th>Role</th><th>State</th><th>Last sign-in</th><th></th></tr>
+            </thead>
+            <tbody>
+            {% for user in users %}
+            <tr>
+                <td>
+                    {{ user.username }}
+                    {% if user.is_admin %}<span class="badge badge-info">admin</span>{% endif %}
+                    {% if user.id == current_user.id %}<span class="badge badge-neutral">you</span>{% endif %}
+                </td>
+                <td class="small">{{ user.full_name or '-' }}<div class="faint">{{ user.email or '' }}</div></td>
+                <td class="small">
+                    {{ user.role_name }}
+                    {% if user.extra_permissions %}
+                    <div class="faint">+ individual grants</div>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not user.active %}
+                    <span class="badge badge-danger">disabled</span>
+                    {% elif user.is_locked %}
+                    <span class="badge badge-warn">locked</span>
+                    {% elif user.must_change_password %}
+                    <span class="badge badge-warn">must change password</span>
+                    {% else %}
+                    <span class="badge badge-ok">active</span>
+                    {% endif %}
+                </td>
+                <td class="small faint nowrap">{{ user.last_login_at|since }}</td>
+                <td>
+                    <div class="btn-row">
+                        <a class="btn btn-sm" href="{{ url_for('users.edit', user_id=user.id) }}">Edit</a>
+                        <a class="btn btn-sm" href="{{ url_for('users.reset_password', user_id=user.id) }}">Reset password</a>
+                        {% if user.id != current_user.id and not (user.is_admin and admin_count <= 1) %}
+                        <form method="post" action="{{ url_for('users.delete', user_id=user.id) }}" class="inline">
+                            {{ action_form.hidden_tag() }}
+                            <button class="btn btn-sm btn-danger"
+                                    data-confirm="Delete the user '{{ user.username }}'?">Delete</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# ---------------------------------------------------------------------- #}
+{# Roles                                                                  #}
+{# ---------------------------------------------------------------------- #}
+<div class="card">
+    <div class="card-title">Roles</div>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Name</th><th>Description</th><th>Permissions</th><th>Users</th><th></th></tr></thead>
+            <tbody>
+            {% for role in roles %}
+            <tr>
+                <td>
+                    {{ role.name }}
+                    {% if role.is_system %}<span class="badge badge-neutral">built-in</span>{% endif %}
+                </td>
+                <td class="small muted">{{ role.description }}</td>
+                <td>
+                    <div class="keyword-cloud">
+                        {% for label in role.permission_labels %}
+                        <span class="keyword">{{ label }}</span>
+                        {% else %}
+                        <span class="faint small">none</span>
+                        {% endfor %}
+                    </div>
+                </td>
+                <td class="numeric">{{ role.users.count() }}</td>
+                <td>
+                    <div class="btn-row">
+                        <a class="btn btn-sm" href="{{ url_for('users.edit_role', role_id=role.id) }}">Edit</a>
+                        {% if not role.is_system and role.users.count() == 0 %}
+                        <form method="post" action="{{ url_for('users.delete_role', role_id=role.id) }}" class="inline">
+                            {{ action_form.hidden_tag() }}
+                            <button class="btn btn-sm btn-danger"
+                                    data-confirm="Delete the role '{{ role.name }}'?">Delete</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

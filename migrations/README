@@ -1,0 +1,46 @@
+Database migrations (Alembic, via Flask-Migrate)
+================================================
+
+Single-database configuration.
+
+How the schema is created
+-------------------------
+A fresh install runs `flask init-db`, which builds the tables directly with
+create_all() and then stamps this migration history at "head" - so Alembic
+knows the database is already current and will not try to re-create tables
+that exist.
+
+An existing install applies schema changes with:
+
+    FLASK_APP=wsgi.py flask db upgrade
+
+Always take a backup first (deploy/backup.sh).
+
+Making a schema change
+----------------------
+1. Edit the model in app/models/.
+2. Generate a revision:
+
+       FLASK_APP=wsgi.py flask db migrate -m "what changed"
+
+3. Read the generated file in versions/ before committing it. Autogenerate is
+   good at added and removed columns, and unreliable about renames, server
+   defaults and constraint changes - those usually need editing by hand.
+4. Test it against a copy of a real database, both up and down:
+
+       flask db upgrade
+       flask db downgrade
+
+Useful commands
+---------------
+    flask db current      which revision the database is on
+    flask db history      the full revision graph
+    flask db heads        the latest revision(s)
+    flask db stamp head   mark the database current without running anything
+
+SQLite note
+-----------
+SQLite cannot ALTER most column properties. Flask-Migrate handles this with
+batch mode (it rebuilds the table), which the generated scripts use where
+needed - but it is worth checking the generated script when a migration
+changes an existing column rather than adding one.

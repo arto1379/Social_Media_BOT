@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% from "partials/_field.html" import render_field %}
+{% block title %}{{ 'Edit user' if user else 'Add user' }} - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>{{ 'Edit user' if user else 'Add user' }}</h1>
+        <p class="subtitle">
+            {% if user %}Editing "{{ user.username }}".
+            {% else %}Create an account and choose what it may access.{% endif %}
+        </p>
+    </div>
+</div>
+
+<form method="post" novalidate>
+    {{ form.hidden_tag() }}
+
+    <div class="grid grid-2">
+        <div class="card">
+            <div class="card-title">Account</div>
+            {{ render_field(form.username) }}
+            {{ render_field(form.full_name) }}
+            {{ render_field(form.email) }}
+            {{ render_field(form.password) }}
+            {{ render_field(form.must_change_password) }}
+            {{ render_field(form.active) }}
+        </div>
+
+        <div class="card">
+            <div class="card-title">Access</div>
+            {{ render_field(form.role_id) }}
+            {{ render_field(form.is_admin) }}
+            <div class="notice small">
+                A role is the usual way to grant access. The individual
+                permissions below are added <em>on top of</em> the role, for
+                one-off cases where creating a whole new role would be overkill.
+            </div>
+            {{ render_field(form.extra_permissions) }}
+        </div>
+    </div>
+
+    <div class="btn-row">
+        <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+        <a class="btn" href="{{ url_for('users.index') }}">Cancel</a>
+    </div>
+</form>
+{% endblock %}

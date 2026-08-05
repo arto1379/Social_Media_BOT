@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% from "partials/_field.html" import render_field %}
+{% block title %}{{ trend.topic[:60] }} - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>{{ trend.topic }}</h1>
+        <p class="subtitle">
+            {{ trend.platform }} / {{ trend.region }} &middot;
+            score {{ trend.score|round|int }}/100 &middot;
+            seen {{ trend.captured_at|since }}
+        </p>
+    </div>
+    {% if current_user.can(Permission.MANAGE_VIDEOS) %}
+    <div class="page-actions">
+        <a class="btn btn-primary" href="{{ url_for('videos.create', trend_id=trend.id) }}">
+            Make a video about this
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="grid grid-2">
+    <div class="card">
+        <div class="card-title">Signals</div>
+        <table>
+            {% for key, value in trend.signals.items() %}
+            <tr>
+                <th>{{ key.replace('_', ' ')|title }}</th>
+                <td class="small">
+                    {% if key == 'reference_url' %}
+                    <a href="{{ value }}" target="_blank" rel="noopener">{{ value }}</a>
+                    {% else %}{{ value }}{% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td class="faint">No raw signals were recorded.</td></tr>
+            {% endfor %}
+        </table>
+        <p class="field-help" style="margin-top:.6rem">
+            The reference link is there so you can watch the example and decide
+            what to make. Do not download or re-post it.
+        </p>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Keywords</div>
+        <div class="keyword-cloud">
+            {% for word in trend.keyword_list %}
+            <span class="keyword">{{ word }}</span>
+            {% else %}
+            <span class="faint">No keywords were extracted.</span>
+            {% endfor %}
+        </div>
+
+        {% if current_user.can(Permission.MANAGE_TRENDS) %}
+        <hr class="divider">
+        <div class="card-title">Review</div>
+        <form method="post" action="{{ url_for('trends.set_status', trend_id=trend.id) }}">
+            {{ form.hidden_tag() }}
+            {{ render_field(form.status) }}
+            {{ render_field(form.notes) }}
+            <button type="submit" class="btn btn-primary btn-sm">Save</button>
+        </form>
+        {% elif trend.notes %}
+        <hr class="divider">
+        <p class="small muted">{{ trend.notes }}</p>
+        {% endif %}
+    </div>
+</div>
+
+{% set made = trend.videos.all() %}
+{% if made %}
+<div class="card">
+    <div class="card-title">Videos made from this trend</div>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Title</th><th>Status</th><th>Added</th></tr></thead>
+            <tbody>
+            {% for video in made %}
+            <tr>
+                <td><a href="{{ url_for('videos.detail', video_id=video.id) }}">{{ video.title }}</a></td>
+                <td><span class="badge badge-neutral">{{ video.status }}</span></td>
+                <td class="small faint">{{ video.created_at|since }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

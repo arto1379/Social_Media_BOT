@@ -1,0 +1,6 @@
+# Development / CI only dependencies. Install with:
+#   pip install -r requirements.txt -r requirements-dev.txt
+-r requirements.txt
+
+pytest>=8.0,<9.0        # Test runner for the tests/ package
+pytest-cov>=5.0         # Coverage reporting

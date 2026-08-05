@@ -1,0 +1,29 @@
+{# Pagination controls for a Flask-SQLAlchemy Pagination object.
+
+   Jinja macros do not accept **kwargs, so extra query-string values (filters,
+   search terms) are passed as a single dict and merged into each page link -
+   that is what keeps a filtered list filtered when you turn the page. #}
+{% macro render_pagination(pagination, endpoint, args={}) %}
+    {% if pagination.pages > 1 %}
+    <div class="pagination">
+        {% if pagination.has_prev %}
+        <a class="btn btn-sm" href="{{ url_for(endpoint, page=pagination.prev_num, **args) }}">Previous</a>
+        {% endif %}
+
+        {% for page_number in pagination.iter_pages(left_edge=1, left_current=2, right_current=2, right_edge=1) %}
+            {% if page_number %}
+                <a class="btn btn-sm {{ 'current' if page_number == pagination.page }}"
+                   href="{{ url_for(endpoint, page=page_number, **args) }}">{{ page_number }}</a>
+            {% else %}
+                <span class="faint">&hellip;</span>
+            {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+        <a class="btn btn-sm" href="{{ url_for(endpoint, page=pagination.next_num, **args) }}">Next</a>
+        {% endif %}
+
+        <span class="faint small">{{ pagination.total }} item(s)</span>
+    </div>
+    {% endif %}
+{% endmacro %}

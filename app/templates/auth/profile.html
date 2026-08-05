@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}My account - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>My account</h1>
+        <p class="subtitle">Your details and what you are allowed to do.</p>
+    </div>
+    <div class="page-actions">
+        <a class="btn" href="{{ url_for('auth.change_password') }}">Change password</a>
+    </div>
+</div>
+
+<div class="grid grid-2">
+    <div class="card">
+        <div class="card-title">Details</div>
+        <table>
+            <tr><th>Username</th><td>{{ user.username }}</td></tr>
+            <tr><th>Full name</th><td>{{ user.full_name or "-" }}</td></tr>
+            <tr><th>Email</th><td>{{ user.email or "-" }}</td></tr>
+            <tr><th>Role</th><td>{{ user.role_name }}</td></tr>
+            <tr><th>Last sign-in</th><td>{{ user.last_login_at|datetime }} {% if user.last_login_ip %}<span class="faint">from {{ user.last_login_ip }}</span>{% endif %}</td></tr>
+            <tr><th>Account created</th><td>{{ user.created_at|datetime }}</td></tr>
+        </table>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Permissions</div>
+        {% if user.is_admin %}
+        <p class="muted">
+            You are an administrator, so you have every permission on this site.
+        </p>
+        {% endif %}
+        <div class="keyword-cloud">
+            {% for label in user.permission_labels %}
+            <span class="keyword">{{ label }}</span>
+            {% else %}
+            <span class="faint">No permissions have been granted.</span>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Trends - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Trends</h1>
+        <p class="subtitle">
+            What is rising in {{ region }} right now, ranked by views per hour
+            rather than raw view count.
+        </p>
+    </div>
+    {% if current_user.can(Permission.MANAGE_TRENDS) %}
+    <div class="page-actions">
+        <form method="post" action="{{ url_for('trends.research') }}">
+            {{ action_form.hidden_tag() }}
+            <button type="submit" class="btn btn-primary">Research now</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+<div class="notice">
+    A trend tells you <strong>what subject to film</strong>. The bot records the
+    topic and its keywords - it never downloads or re-posts the source video.
+    Re-uploading somebody else's footage is copyright infringement, is demoted
+    as reused content, and cannot be monetised.
+</div>
+
+{% if keywords %}
+<div class="card">
+    <div class="card-title">Keywords appearing across trending videos</div>
+    <div class="keyword-cloud">
+        {% for word, count in keywords %}
+        <span class="keyword">{{ word }} <span class="faint">{{ count }}</span></span>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<form method="get" class="filter-bar">
+    <div class="field">
+        <label for="status">Status</label>
+        <select id="status" name="status">
+            <option value="">All</option>
+            {% for value in statuses %}
+            <option value="{{ value }}" {{ 'selected' if status == value }}>{{ value|title }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="field">
+        <label for="platform">Platform</label>
+        <select id="platform" name="platform">
+            <option value="">All</option>
+            {% for value in platforms %}
+            <option value="{{ value }}" {{ 'selected' if platform == value }}>{{ value }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn">Filter</button>
+</form>
+
+<div class="card">
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr><th class="numeric">Score</th><th>Topic</th><th>Category</th><th>Keywords</th><th>Status</th><th>Seen</th><th></th></tr>
+            </thead>
+            <tbody>
+            {% for trend in trends %}
+            <tr>
+                <td class="numeric">
+                    <strong>{{ trend.score|round|int }}</strong>
+                    <div class="progress" style="min-width:50px">
+                        <div class="progress-bar" style="width: {{ trend.score }}%"></div>
+                    </div>
+                </td>
+                <td class="truncate">
+                    <a href="{{ url_for('trends.detail', trend_id=trend.id) }}">{{ trend.topic }}</a>
+                    {% if trend.signals.get('views') %}
+                    <div class="faint small">
+                        {{ trend.signals['views']|number }} views,
+                        {{ trend.signals.get('views_per_hour', 0)|number }}/hour
+                    </div>
+                    {% endif %}
+                </td>
+                <td class="small">{{ trend.category or '-' }}</td>
+                <td class="small truncate muted">{{ trend.keyword_list[:6]|join(', ') }}</td>
+                <td>
+                    <span class="badge {{ 'badge-info' if trend.status == 'new'
+                                          else ('badge-ok' if trend.status == 'used'
+                                          else ('badge-warn' if trend.status == 'planned' else 'badge-neutral')) }}">
+                        {{ trend.status }}
+                    </span>
+                </td>
+                <td class="small faint nowrap">{{ trend.captured_at|since }}</td>
+                <td>
+                    {% if current_user.can(Permission.MANAGE_VIDEOS) %}
+                    <a class="btn btn-sm" href="{{ url_for('videos.create', trend_id=trend.id) }}">Make a video</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="table-empty">
+                No trends stored yet. Research runs every few hours in the
+                background{% if current_user.can(Permission.MANAGE_TRENDS) %}, or press "Research now"{% endif %}.
+                It needs a connected account, because the trending API is called
+                with its credentials.
+            </td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

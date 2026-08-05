@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% from "partials/_field.html" import render_field %}
+{% block title %}{{ video.title }} - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>{{ video.title }}</h1>
+        <p class="subtitle">
+            Added {{ video.created_at|since }}
+            {% if video.created_by %} by {{ video.created_by.username }}{% endif %}
+            &middot; <span class="badge badge-neutral">{{ video.status }}</span>
+        </p>
+    </div>
+    <div class="page-actions">
+        {% if current_user.can(Permission.MANAGE_VIDEOS) %}
+        <a class="btn" href="{{ url_for('videos.edit', video_id=video.id) }}">Edit</a>
+        <form method="post" action="{{ url_for('videos.convert', video_id=video.id) }}" class="inline">
+            {{ action_form.hidden_tag() }}
+            <button type="submit" class="btn">Re-run Shorts conversion</button>
+        </form>
+        <form method="post" action="{{ url_for('videos.delete', video_id=video.id) }}" class="inline">
+            {{ action_form.hidden_tag() }}
+            <button type="submit" class="btn btn-danger"
+                    data-confirm="Delete '{{ video.title }}' from the library? Anything already published stays online.">
+                Delete
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+{# ---------------------------------------------------------------------- #}
+{# Publishing readiness - the single most useful thing on this page.      #}
+{# ---------------------------------------------------------------------- #}
+{% set problems = video.blocking_reasons() %}
+{% if problems %}
+<div class="notice notice-warn">
+    <strong>Not publishable yet.</strong>
+    <ul class="blocking-list">
+        {% for problem in problems %}<li>{{ problem }}</li>{% endfor %}
+    </ul>
+</div>
+{% else %}
+<div class="notice">
+    <strong>Ready to publish.</strong> Rights confirmed
+    {% if video.rights_confirmed_by %}by {{ video.rights_confirmed_by.username }}{% endif %}
+    {% if video.rights_confirmed_at %}on {{ video.rights_confirmed_at|datetime }}{% endif %}.
+</div>
+{% endif %}
+
+<div class="grid grid-2">
+    {# ------------------------------------------------------------------ #}
+    {# Preview and technical properties                                    #}
+    {# ------------------------------------------------------------------ #}
+    <div class="card">
+        <div class="card-title">Preview</div>
+        <video class="video-preview" controls preload="metadata"
+               {% if video.thumbnail_path %}poster="{{ url_for('videos.media', relative_path=video.thumbnail_path) }}"{% endif %}>
+            <source src="{{ url_for('videos.media', relative_path=video.file_path) }}">
+            Your browser cannot play this file inline.
+        </video>
+        <table style="margin-top:.8rem">
+            <tr><th>Format</th>
+                <td>
+                    {% if video.is_shorts_ready %}
+                    <span class="badge badge-ok">Shorts ready</span>
+                    {% else %}
+                    <span class="badge badge-warn">not Shorts ready</span>
+                    {% endif %}
+                </td></tr>
+            <tr><th>Frame</th><td>{{ video.width or '?' }}x{{ video.height or '?' }}</td></tr>
+            <tr><th>Duration</th><td>{{ video.duration_seconds|duration }}</td></tr>
+            <tr><th>Size</th><td>{{ video.file_size|filesize }}</td></tr>
+            <tr><th>Notes</th><td class="small muted">{{ video.format_notes or '-' }}</td></tr>
+            <tr><th>File</th><td class="mono small">{{ video.file_path }}</td></tr>
+        </table>
+    </div>
+
+    {# ------------------------------------------------------------------ #}
+    {# Metadata and rights                                                 #}
+    {# ------------------------------------------------------------------ #}
+    <div class="card">
+        <div class="card-title">Metadata</div>
+        <table>
+            <tr><th>Description</th><td class="small">{{ video.description or '-' }}</td></tr>
+            <tr><th>Tags</th><td class="small">{{ video.tag_list|join(', ') or '-' }}</td></tr>
+            <tr><th>Privacy</th><td>{{ video.privacy }}</td></tr>
+            <tr><th>Made for kids</th><td>{{ 'yes' if video.made_for_kids else 'no' }}</td></tr>
+            <tr><th>Source</th><td>{{ video.source }}</td></tr>
+            {% if video.trend %}
+            <tr><th>From trend</th>
+                <td><a href="{{ url_for('trends.detail', trend_id=video.trend_id) }}">{{ video.trend.topic }}</a></td></tr>
+            {% endif %}
+        </table>
+
+        <hr class="divider">
+        <div class="card-title">Rights</div>
+        <table>
+            <tr><th>Licence</th>
+                <td><span class="badge {{ 'badge-ok' if video.is_monetizable
+                                          else ('badge-warn' if video.license_type == 'royalty_free'
+                                          else 'badge-danger') }}">{{ video.license_label }}</span></td></tr>
+            <tr><th>Source</th><td>{{ video.license_source or '-' }}</td></tr>
+            <tr><th>Reference</th><td class="small">{{ video.license_reference or '-' }}</td></tr>
+            <tr><th>Attribution</th><td class="small">{{ video.attribution or '-' }}</td></tr>
+        </table>
+
+        {% if not video.rights_confirmed and current_user.can(Permission.PUBLISH_VIDEOS) %}
+        <form method="post" action="{{ url_for('videos.confirm_rights', video_id=video.id) }}"
+              style="margin-top:.8rem">
+            {{ rights_form.hidden_tag() }}
+            {{ render_field(rights_form.confirm) }}
+            <button type="submit" class="btn btn-primary btn-sm">Confirm rights</button>
+            <span class="field-help">
+                Your name is recorded in the audit log against this confirmation.
+            </span>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+{# ---------------------------------------------------------------------- #}
+{# Publish                                                                 #}
+{# ---------------------------------------------------------------------- #}
+{% if current_user.can(Permission.PUBLISH_VIDEOS) %}
+<div class="card">
+    <div class="card-title">Publish</div>
+    {% if not has_accounts %}
+    <p class="muted small">
+        No connected account is available.
+        {% if current_user.can(Permission.MANAGE_ACCOUNTS) %}
+        <a href="{{ url_for('accounts.index') }}">Connect one</a> first.
+        {% endif %}
+    </p>
+    {% elif problems %}
+    <p class="muted small">Resolve the issues listed above before publishing.</p>
+    {% else %}
+    <form method="post" action="{{ url_for('videos.queue', video_id=video.id) }}">
+        {{ queue_form.hidden_tag() }}
+        <div class="form-grid">
+            {{ render_field(queue_form.account_id) }}
+            {{ render_field(queue_form.when) }}
+        </div>
+        <button type="submit" class="btn btn-primary">Queue upload</button>
+        <span class="field-help">
+            The background worker performs the transfer; you can close the page.
+        </span>
+    </form>
+    {% endif %}
+</div>
+{% endif %}
+
+{# ---------------------------------------------------------------------- #}
+{# Upload history                                                          #}
+{# ---------------------------------------------------------------------- #}
+<div class="card">
+    <div class="card-title">Upload history</div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr><th>Account</th><th>Scheduled</th><th>Status</th><th>Result</th><th>Attempts</th><th></th></tr>
+            </thead>
+            <tbody>
+            {% for job in jobs %}
+            <tr>
+                <td>{{ job.account.display_name if job.account else job.platform }}</td>
+                <td class="small nowrap">{{ job.scheduled_at|datetime }}</td>
+                <td>
+                    <span class="badge {{ 'badge-ok' if job.status == 'succeeded'
+                                          else ('badge-danger' if job.status == 'failed'
+                                          else 'badge-neutral') }}">{{ job.status }}</span>
+                </td>
+                <td class="small">
+                    {% if job.remote_url %}
+                        <a href="{{ job.remote_url }}" target="_blank" rel="noopener">{{ job.remote_id }}</a>
+                    {% elif job.last_error %}
+                        <span class="muted">{{ job.last_error[:160] }}</span>
+                    {% else %}-{% endif %}
+                </td>
+                <td class="numeric">{{ job.attempts }}/{{ job.max_attempts }}</td>
+                <td>
+                    {% if current_user.can(Permission.PUBLISH_VIDEOS) %}
+                        {% if job.status in ('pending', 'retrying') %}
+                        <form method="post" action="{{ url_for('videos.cancel_job', job_id=job.id) }}" class="inline">
+                            {{ action_form.hidden_tag() }}
+                            <button class="btn btn-sm btn-danger">Cancel</button>
+                        </form>
+                        {% elif job.status in ('failed', 'cancelled') %}
+                        <form method="post" action="{{ url_for('videos.retry_job', job_id=job.id) }}" class="inline">
+                            {{ action_form.hidden_tag() }}
+                            <button class="btn btn-sm">Retry</button>
+                        </form>
+                        {% endif %}
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="table-empty">This video has not been queued yet.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# ---------------------------------------------------------------------- #}
+{# Performance                                                             #}
+{# ---------------------------------------------------------------------- #}
+{% if current_user.can(Permission.VIEW_STATISTICS) and latest_stat %}
+<div class="card">
+    <div class="card-title">Performance</div>
+    <div class="grid grid-4">
+        <div class="stat"><span class="stat-label">Views</span><span class="stat-value">{{ latest_stat.views|number }}</span></div>
+        <div class="stat"><span class="stat-label">Likes</span><span class="stat-value">{{ latest_stat.likes|number }}</span></div>
+        <div class="stat"><span class="stat-label">Comments</span><span class="stat-value">{{ latest_stat.comments|number }}</span></div>
+        <div class="stat">
+            <span class="stat-label">Revenue</span>
+            <span class="stat-value">{{ '$%.2f'|format(latest_stat.estimated_revenue) if latest_stat.estimated_revenue else '-' }}</span>
+        </div>
+    </div>
+    {% if history|length > 1 %}
+        {% set peak = history|map(attribute='views')|max %}
+        <div class="chart" style="margin-top:1rem">
+            {% for snapshot in history %}
+            <div class="chart-bar" style="height: {{ ((snapshot.views / peak) * 100)|round(1) if peak else 0 }}%"
+                 title="{{ snapshot.captured_at|datetime }}: {{ snapshot.views|number }} views"></div>
+            {% endfor %}
+        </div>
+        <div class="chart-axis">
+            <span>{{ history[0].captured_at|datetime('%Y-%m-%d') }}</span>
+            <span>{{ history[-1].captured_at|datetime('%Y-%m-%d') }}</span>
+        </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

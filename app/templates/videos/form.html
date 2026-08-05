@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% from "partials/_field.html" import render_field %}
+{% block title %}{{ 'Edit video' if video else 'Add video' }} - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>{{ 'Edit video' if video else 'Add video' }}</h1>
+        <p class="subtitle">
+            {% if video %}Editing "{{ video.title }}".
+            {% else %}Upload a file and describe it. It stays a draft until the
+            rights are confirmed.{% endif %}
+        </p>
+    </div>
+</div>
+
+{% if trend %}
+<div class="notice">
+    Prefilled from the trend <strong>{{ trend.topic }}</strong>
+    (score {{ trend.score|round|int }}/100).
+    The trend tells you <em>what to film</em> - the file you upload must still
+    be your own or properly licensed material.
+</div>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" novalidate>
+    {{ form.hidden_tag() }}
+
+    <div class="grid grid-2">
+        {# ---------------------------------------------------------- #}
+        {# Metadata that goes to the platform                          #}
+        {# ---------------------------------------------------------- #}
+        <div class="card">
+            <div class="card-title">Publishing metadata</div>
+            {{ render_field(form.title) }}
+            {{ render_field(form.description) }}
+            {{ render_field(form.tags, placeholder="cooking, quick recipe, kitchen") }}
+            <div class="form-grid">
+                {{ render_field(form.category_id) }}
+                {{ render_field(form.privacy) }}
+                {{ render_field(form.language) }}
+                {{ render_field(form.source) }}
+            </div>
+            {{ render_field(form.made_for_kids) }}
+            {% if form.status is defined %}{{ render_field(form.status) }}{% endif %}
+        </div>
+
+        {# ---------------------------------------------------------- #}
+        {# Files                                                       #}
+        {# ---------------------------------------------------------- #}
+        <div class="card">
+            <div class="card-title">Files</div>
+            {% if form.video_file is defined %}
+                {{ render_field(form.video_file) }}
+                <div class="field-help" id="upload-hint"></div>
+                {{ render_field(form.convert) }}
+                <div class="notice small">
+                    A YouTube Short must be vertical and no longer than three
+                    minutes. Anything else is re-encoded to 1080x1920 with
+                    ffmpeg before it is published; the conversion runs while
+                    this form is submitting, so keep the tab open.
+                </div>
+            {% else %}
+                <p class="small muted">
+                    The media file cannot be replaced from here. Delete the
+                    video and upload it again if the file itself is wrong.
+                </p>
+                <table>
+                    <tr><th>File</th><td class="mono">{{ video.file_path }}</td></tr>
+                    <tr><th>Size</th><td>{{ video.file_size|filesize }}</td></tr>
+                    <tr><th>Frame</th><td>{{ video.width or '?' }}x{{ video.height or '?' }}</td></tr>
+                    <tr><th>Duration</th><td>{{ video.duration_seconds|duration }}</td></tr>
+                </table>
+            {% endif %}
+            <hr class="divider">
+            {{ render_field(form.thumbnail_file) }}
+        </div>
+    </div>
+
+    {# -------------------------------------------------------------- #}
+    {# Rights - the part that decides whether this can earn            #}
+    {# -------------------------------------------------------------- #}
+    <div class="card">
+        <div class="card-title">Rights and monetisation</div>
+        <div class="notice notice-warn">
+            Only material you own or have licensed can earn money. Royalty-free
+            clips are fine for gathering views but do not count towards the
+            revenue share. Footage whose rights you cannot state is blocked
+            from publishing - re-uploading someone else's video is what gets a
+            channel struck and demonetised.
+        </div>
+        <div class="form-grid">
+            {{ render_field(form.license_type) }}
+            {{ render_field(form.license_source, placeholder="e.g. filmed in-house, Pexels, contributor name") }}
+            {{ render_field(form.license_reference, placeholder="licence id, invoice number or URL") }}
+        </div>
+        {{ render_field(form.attribution, placeholder="Video by Jane Doe (Pexels), used under the Pexels licence") }}
+    </div>
+
+    <div class="btn-row">
+        <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+        <a class="btn" href="{{ url_for('videos.detail', video_id=video.id) if video else url_for('videos.index') }}">Cancel</a>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Statistics - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Statistics</h1>
+        <p class="subtitle">
+            Views and performance across every connected platform.
+            {% if totals.last_collected %}Last collected {{ totals.last_collected|since }}.{% endif %}
+        </p>
+    </div>
+    {% if current_user.can(Permission.RUN_JOBS) %}
+    <div class="page-actions">
+        <form method="post" action="{{ url_for('stats.refresh') }}">
+            {{ action_form.hidden_tag() }}
+            <button type="submit" class="btn btn-primary">Collect now</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+<div class="grid grid-4">
+    <div class="card stat">
+        <span class="stat-label">Views</span>
+        <span class="stat-value">{{ totals.views|number }}</span>
+        <span class="stat-note">{{ totals.tracked_videos }} video(s)</span>
+    </div>
+    <div class="card stat">
+        <span class="stat-label">Likes</span>
+        <span class="stat-value">{{ totals.likes|number }}</span>
+        <span class="stat-note">{{ totals.comments|number }} comments</span>
+    </div>
+    <div class="card stat">
+        <span class="stat-label">Watch time</span>
+        <span class="stat-value">{{ (totals.watch_time_minutes / 60)|round(1) }}<span class="small muted"> h</span></span>
+        <span class="stat-note">from platform analytics</span>
+    </div>
+    <div class="card stat">
+        <span class="stat-label">Estimated revenue</span>
+        <span class="stat-value">${{ '%.2f'|format(totals.estimated_revenue) }}</span>
+        <span class="stat-note">requires a monetised channel</span>
+    </div>
+</div>
+
+{# ---------------------------------------------------------------------- #}
+{# Per-platform breakdown - the "all social medias" view                  #}
+{# ---------------------------------------------------------------------- #}
+<div class="grid grid-2">
+    <div class="card">
+        <div class="card-title">By platform</div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Platform</th><th class="numeric">Videos</th><th class="numeric">Views</th><th class="numeric">Likes</th><th class="numeric">Revenue</th></tr></thead>
+                <tbody>
+                {% for platform, data in totals.by_platform.items() %}
+                <tr>
+                    <td>{{ platform }}</td>
+                    <td class="numeric">{{ data.videos }}</td>
+                    <td class="numeric">{{ data.views|number }}</td>
+                    <td class="numeric">{{ data.likes|number }}</td>
+                    <td class="numeric">{{ '$%.2f'|format(data.revenue) }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="table-empty">No statistics collected yet.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">Channels</div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Channel</th><th class="numeric">Subscribers</th><th class="numeric">Channel views</th><th>Updated</th></tr></thead>
+                <tbody>
+                {% for account_id, stat in channel_stats.items() %}
+                <tr>
+                    <td>{{ accounts[account_id].display_name if account_id in accounts else 'unknown' }}</td>
+                    <td class="numeric">{{ stat.subscribers_gained|number }}</td>
+                    <td class="numeric">{{ stat.views|number }}</td>
+                    <td class="small faint">{{ stat.captured_at|since }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="table-empty">No channel statistics yet.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{# ---------------------------------------------------------------------- #}
+{# Views over time                                                        #}
+{# ---------------------------------------------------------------------- #}
+<div class="card">
+    <div class="row-between">
+        <div class="card-title" style="margin:0">Views over time</div>
+        <div class="btn-row">
+            {% for option in [7, 30, 90, 365] %}
+            <a class="btn btn-sm {{ 'current' if days == option }}"
+               href="{{ url_for('stats.index', days=option) }}">{{ option }}d</a>
+            {% endfor %}
+        </div>
+    </div>
+    {% if timeseries %}
+        {% set peak = timeseries|map(attribute='views')|max %}
+        <div class="chart">
+            {% for point in timeseries %}
+            <div class="chart-bar" style="height: {{ ((point.views / peak) * 100)|round(1) if peak else 0 }}%"
+                 title="{{ point.date }}: {{ point.views|number }} views"></div>
+            {% endfor %}
+        </div>
+        <div class="chart-axis">
+            <span>{{ timeseries[0].date }}</span>
+            <span>peak {{ peak|number }}</span>
+            <span>{{ timeseries[-1].date }}</span>
+        </div>
+    {% else %}
+        <p class="faint small">Nothing to plot yet.</p>
+    {% endif %}
+</div>
+
+{# ---------------------------------------------------------------------- #}
+{# Per-video table                                                        #}
+{# ---------------------------------------------------------------------- #}
+<div class="card">
+    <div class="card-title">Every tracked video</div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>Video</th><th>Platform</th><th>Rights</th>
+                <th class="numeric">Views</th><th class="numeric">Likes</th>
+                <th class="numeric">Comments</th><th class="numeric">Watch time</th>
+                <th class="numeric">Revenue</th><th>Updated</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in rows %}
+            <tr>
+                <td class="truncate">
+                    <a href="{{ url_for('videos.detail', video_id=row.video.id) }}">{{ row.video.title }}</a>
+                </td>
+                <td class="small">{{ row.stat.platform }}</td>
+                <td>
+                    <span class="badge {{ 'badge-ok' if row.video.is_monetizable else 'badge-warn' }}">
+                        {{ 'monetisable' if row.video.is_monetizable else 'views only' }}
+                    </span>
+                </td>
+                <td class="numeric">{{ row.stat.views|number }}</td>
+                <td class="numeric">{{ row.stat.likes|number }}</td>
+                <td class="numeric">{{ row.stat.comments|number }}</td>
+                <td class="numeric">{{ row.stat.watch_time_minutes|round|int }} min</td>
+                <td class="numeric">{{ '$%.2f'|format(row.stat.estimated_revenue) if row.stat.estimated_revenue else '-' }}</td>
+                <td class="small faint nowrap">{{ row.stat.captured_at|since }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="9" class="table-empty">
+                No statistics yet. They are collected in the background a few
+                times a day, or on demand with "Collect now".
+            </td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Settings - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Settings</h1>
+        <p class="subtitle">
+            How the operation runs. Changes take effect on the next background
+            cycle - no restart needed.
+        </p>
+    </div>
+</div>
+
+<div class="notice">
+    Secrets and paths (API keys, database URL, media directory) live in the
+    server's <code>.env</code> file, not here. Changing those does need a
+    restart - see CONFIGURE.md.
+</div>
+
+<form method="post" novalidate>
+    {{ form.hidden_tag() }}
+
+    {% for group, specs in groups.items() %}
+    <div class="card">
+        <div class="card-title">{{ group }}</div>
+
+        {% for spec in specs %}
+        {% set value = values[spec.key] %}
+
+        {% if spec.kind == 'bool' %}
+            <div class="checkbox">
+                <input type="checkbox" id="{{ spec.key }}" name="{{ spec.key }}" {{ 'checked' if value }}>
+                <label for="{{ spec.key }}">
+                    {{ spec.label }}
+                    <span class="field-help" style="display:block">{{ spec.help }}</span>
+                </label>
+            </div>
+
+        {% elif spec.kind == 'choice' %}
+            <div class="field">
+                <label for="{{ spec.key }}">{{ spec.label }}</label>
+                <select id="{{ spec.key }}" name="{{ spec.key }}">
+                    {% for option_value, option_label in spec.choices %}
+                    <option value="{{ option_value }}" {{ 'selected' if value|string == option_value }}>
+                        {{ option_label }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <span class="field-help">{{ spec.help }}</span>
+            </div>
+
+        {% elif spec.kind == 'time_list' %}
+            <div class="field">
+                <label for="{{ spec.key }}">{{ spec.label }}</label>
+                <input type="text" id="{{ spec.key }}" name="{{ spec.key }}"
+                       value="{{ value|join(', ') if value is iterable and value is not string else value }}">
+                <span class="field-help">{{ spec.help }}</span>
+            </div>
+
+        {% elif spec.kind in ('int', 'float') %}
+            <div class="field">
+                <label for="{{ spec.key }}">{{ spec.label }}</label>
+                <input type="number" id="{{ spec.key }}" name="{{ spec.key }}" value="{{ value }}"
+                       step="{{ '1' if spec.kind == 'int' else '0.05' }}"
+                       {% if spec.minimum is not none %}min="{{ spec.minimum }}"{% endif %}
+                       {% if spec.maximum is not none %}max="{{ spec.maximum }}"{% endif %}>
+                <span class="field-help">{{ spec.help }}</span>
+            </div>
+
+        {% else %}
+            <div class="field">
+                <label for="{{ spec.key }}">{{ spec.label }}</label>
+                <input type="text" id="{{ spec.key }}" name="{{ spec.key }}" value="{{ value }}">
+                <span class="field-help">{{ spec.help }}</span>
+            </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endfor %}
+
+    <div class="btn-row">
+        <button type="submit" class="btn btn-primary">Save settings</button>
+    </div>
+</form>
+{% endblock %}

@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Dashboard</h1>
+        <p class="subtitle">
+            Growth, queue and health in one place.
+            {% if totals.last_collected %}
+            Statistics last collected {{ totals.last_collected|since }}.
+            {% else %}
+            No statistics have been collected yet.
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+{# ---------------------------------------------------------------------- #}
+{# Headline numbers, summed across every connected platform.              #}
+{# ---------------------------------------------------------------------- #}
+<div class="grid grid-4">
+    <div class="card stat">
+        <span class="stat-label">Total views</span>
+        <span class="stat-value">{{ totals.views|number }}</span>
+        <span class="stat-note">{{ totals.tracked_videos }} video(s) tracked</span>
+    </div>
+    <div class="card stat">
+        <span class="stat-label">Subscribers</span>
+        <span class="stat-value">{{ totals.subscribers|number }}</span>
+        <span class="stat-note">across all connected channels</span>
+    </div>
+    <div class="card stat">
+        <span class="stat-label">Watch time</span>
+        <span class="stat-value">{{ (totals.watch_time_minutes / 60)|round(1) }}<span class="small muted"> h</span></span>
+        <span class="stat-note">{{ totals.likes|number }} likes, {{ totals.comments|number }} comments</span>
+    </div>
+    <div class="card stat">
+        <span class="stat-label">Estimated revenue</span>
+        <span class="stat-value">${{ '%.2f'|format(totals.estimated_revenue) }}</span>
+        <span class="stat-note">
+            {% if totals.estimated_revenue %}reported by the platform{% else %}
+            available once the channel is monetised{% endif %}
+        </span>
+    </div>
+</div>
+
+<div class="grid grid-2">
+    {# ------------------------------------------------------------------ #}
+    {# Views over time - plain CSS bars, no charting library.              #}
+    {# ------------------------------------------------------------------ #}
+    <div class="card">
+        <div class="card-title">Views, last 30 days</div>
+        {% if timeseries %}
+            {% set peak = timeseries|map(attribute='views')|max %}
+            <div class="chart">
+                {% for point in timeseries %}
+                <div class="chart-bar"
+                     style="height: {{ ((point.views / peak) * 100)|round(1) if peak else 0 }}%"
+                     title="{{ point.date }}: {{ point.views|number }} views"></div>
+                {% endfor %}
+            </div>
+            <div class="chart-axis">
+                <span>{{ timeseries[0].date }}</span>
+                <span>{{ timeseries[-1].date }}</span>
+            </div>
+        {% else %}
+            <p class="faint small">
+                Nothing to plot yet. Statistics are collected in the background;
+                use "Collect statistics" below to run it now.
+            </p>
+        {% endif %}
+    </div>
+
+    {# ------------------------------------------------------------------ #}
+    {# Library health and the monetisable mix.                             #}
+    {# ------------------------------------------------------------------ #}
+    <div class="card">
+        <div class="card-title">Video library</div>
+        {% set ready = library.ready_total %}
+        {% set monet = library.ready_monetizable %}
+        <div class="row-between" style="margin-bottom:.6rem">
+            <div>
+                <span class="stat-value" style="font-size:1.3rem">{{ ready }}</span>
+                <span class="muted small">ready to publish</span>
+            </div>
+            <div class="small muted">target {{ (monetizable_target * 100)|round|int }}% monetisable</div>
+        </div>
+
+        <div class="meter">
+            <div class="meter-monetizable" style="width: {{ ((monet / ready) * 100)|round(1) if ready else 0 }}%"></div>
+            <div class="meter-free" style="width: {{ ((library.ready_royalty_free / ready) * 100)|round(1) if ready else 0 }}%"></div>
+        </div>
+        <div class="meter-legend">
+            <span><span class="legend-dot" style="background:var(--ok)"></span>{{ monet }} monetisable</span>
+            <span><span class="legend-dot" style="background:var(--warn)"></span>{{ library.ready_royalty_free }} royalty-free</span>
+        </div>
+
+        <hr class="divider">
+        <div class="stack small">
+            <div class="row-between"><span class="muted">Awaiting rights confirmation</span>
+                <span>{{ library.awaiting_rights }}</span></div>
+            <div class="row-between"><span class="muted">Not in Shorts format</span>
+                <span>{{ library.needs_conversion }}</span></div>
+            <div class="row-between"><span class="muted">Published</span>
+                <span>{{ library.published }}</span></div>
+            <div class="row-between"><span class="muted">Total in library</span>
+                <span>{{ library.total }}</span></div>
+        </div>
+    </div>
+</div>
+
+{# ---------------------------------------------------------------------- #}
+{# Health checks - the panel that explains why nothing is happening.      #}
+{# ---------------------------------------------------------------------- #}
+<div class="card">
+    <div class="card-title">System health</div>
+    {% for check in health %}
+    <div class="health-item">
+        <span class="health-dot health-{{ check.level }}"></span>
+        <div>
+            <div class="health-title">{{ check.title }}</div>
+            <div class="health-detail">{{ check.detail }}</div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="grid grid-2">
+    {# ------------------------------------------------------------------ #}
+    {# Live queue.                                                         #}
+    {# ------------------------------------------------------------------ #}
+    <div class="card" id="queue-live">
+        <div class="row-between">
+            <div class="card-title" style="margin:0">Upload queue</div>
+            <a class="small" href="{{ url_for('videos.jobs') }}">Full history</a>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr><th>Video</th><th>Account</th><th>Scheduled</th><th>Status</th><th class="numeric">Progress</th></tr>
+                </thead>
+                <tbody>
+                {% for job in active_jobs %}
+                <tr data-job-id="{{ job.id }}">
+                    <td class="truncate">
+                        {% if job.video %}
+                        <a href="{{ url_for('videos.detail', video_id=job.video_id) }}">{{ job.video.title }}</a>
+                        {% else %}<span class="faint">deleted</span>{% endif %}
+                    </td>
+                    <td class="small">{{ job.account.display_name if job.account else '-' }}</td>
+                    <td class="small nowrap">{{ job.scheduled_at|datetime }}</td>
+                    <td><span class="badge badge-info" data-job-status>{{ job.status }}</span></td>
+                    <td class="numeric">
+                        <div class="progress"><div class="progress-bar" style="width: {{ job.progress_percent }}%"></div></div>
+                        <span class="small faint" data-job-percent>{{ job.progress_percent }}%</span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="table-empty">The queue is empty.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# ------------------------------------------------------------------ #}
+    {# Recently finished jobs.                                             #}
+    {# ------------------------------------------------------------------ #}
+    <div class="card">
+        <div class="card-title">Recently finished</div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Video</th><th>Finished</th><th>Result</th></tr></thead>
+                <tbody>
+                {% for job in recent_jobs %}
+                <tr>
+                    <td class="truncate">
+                        {% if job.video %}
+                        <a href="{{ url_for('videos.detail', video_id=job.video_id) }}">{{ job.video.title }}</a>
+                        {% else %}<span class="faint">deleted</span>{% endif %}
+                    </td>
+                    <td class="small nowrap">{{ job.finished_at|since }}</td>
+                    <td>
+                        {% if job.status == 'succeeded' %}
+                            <span class="badge badge-ok">published</span>
+                            {% if job.remote_url %}<a class="small" href="{{ job.remote_url }}" target="_blank" rel="noopener">watch</a>{% endif %}
+                        {% elif job.status == 'failed' %}
+                            <span class="badge badge-danger" title="{{ job.last_error }}">failed</span>
+                        {% else %}
+                            <span class="badge badge-neutral">{{ job.status }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3" class="table-empty">Nothing has been published yet.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{# ---------------------------------------------------------------------- #}
+{# Top videos.                                                            #}
+{# ---------------------------------------------------------------------- #}
+{% if top_videos %}
+<div class="card">
+    <div class="card-title">Best performing videos</div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr><th>Video</th><th>Rights</th><th class="numeric">Views</th><th class="numeric">Likes</th><th class="numeric">Revenue</th></tr>
+            </thead>
+            <tbody>
+            {% for video, stat in top_videos %}
+            <tr>
+                <td class="truncate"><a href="{{ url_for('videos.detail', video_id=video.id) }}">{{ video.title }}</a></td>
+                <td><span class="badge {{ 'badge-ok' if video.is_monetizable else 'badge-warn' }}">{{ video.license_label }}</span></td>
+                <td class="numeric">{{ stat.views|number }}</td>
+                <td class="numeric">{{ stat.likes|number }}</td>
+                <td class="numeric">{{ '$%.2f'|format(stat.estimated_revenue) if stat.estimated_revenue else '-' }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{# ---------------------------------------------------------------------- #}
+{# Background jobs: schedule and manual triggers.                          #}
+{# ---------------------------------------------------------------------- #}
+{% if current_user.can(Permission.RUN_JOBS) %}
+<div class="card">
+    <div class="card-title">Background jobs</div>
+    {% if scheduler_jobs %}
+    <table style="margin-bottom:1rem">
+        <thead><tr><th>Job</th><th>Next run (UTC)</th></tr></thead>
+        <tbody>
+        {% for job in scheduler_jobs %}
+        <tr><td>{{ job.name }}</td><td class="small">{{ job.next_run.strftime('%Y-%m-%d %H:%M') if job.next_run else '-' }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="faint small">
+        The scheduler is not running in this process. In the recommended
+        deployment it runs as the separate <code>socialbot-worker</code>
+        service. You can still trigger any job by hand below.
+    </p>
+    {% endif %}
+
+    <div class="btn-row">
+        {% for job_id, entry in manual_jobs.items() %}
+        <form method="post" action="{{ url_for('dashboard.run_job', job_id=job_id) }}" class="inline">
+            {{ action_form.hidden_tag() }}
+            <button type="submit" class="btn btn-sm">{{ entry[0] }}</button>
+        </form>
+        {% endfor %}
+    </div>
+    <p class="field-help" style="margin-top:.5rem">
+        Manual runs happen immediately in this request, so the page may take a
+        few seconds - an upload run transfers the file before it returns.
+    </p>
+</div>
+{% endif %}
+{% endblock %}

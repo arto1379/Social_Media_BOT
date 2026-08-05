@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% from "partials/_pagination.html" import render_pagination %}
+{% block title %}Upload queue - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Upload queue</h1>
+        <p class="subtitle">
+            Every publish attempt, newest first. Running jobs refresh
+            automatically.
+        </p>
+    </div>
+</div>
+
+<div class="card" id="queue-live">
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>Video</th><th>Account</th><th>Trigger</th><th>Scheduled</th>
+                <th>Status</th><th class="numeric">Progress</th><th>Result</th><th></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for job in jobs %}
+            <tr {% if job.status in ('pending', 'running', 'retrying') %}data-job-id="{{ job.id }}"{% endif %}>
+                <td class="truncate">
+                    {% if job.video %}
+                    <a href="{{ url_for('videos.detail', video_id=job.video_id) }}">{{ job.video.title }}</a>
+                    {% else %}<span class="faint">deleted video</span>{% endif %}
+                </td>
+                <td class="small">{{ job.account.display_name if job.account else job.platform }}</td>
+                <td class="small">
+                    <span class="badge badge-neutral">{{ 'automatic' if job.is_automatic else 'manual' }}</span>
+                </td>
+                <td class="small nowrap">{{ job.scheduled_at|datetime }}</td>
+                <td>
+                    <span class="badge {{ 'badge-ok' if job.status == 'succeeded'
+                                          else ('badge-danger' if job.status == 'failed'
+                                          else ('badge-warn' if job.status == 'retrying' else 'badge-neutral')) }}"
+                          data-job-status>{{ job.status }}</span>
+                </td>
+                <td class="numeric">
+                    <div class="progress"><div class="progress-bar" style="width: {{ job.progress_percent }}%"></div></div>
+                    <span class="small faint" data-job-percent>{{ job.progress_percent }}%</span>
+                </td>
+                <td class="small truncate">
+                    {% if job.remote_url %}
+                        <a href="{{ job.remote_url }}" target="_blank" rel="noopener">watch</a>
+                    {% elif job.last_error %}
+                        <span class="muted" title="{{ job.last_error }}">{{ job.last_error[:80] }}</span>
+                    {% else %}-{% endif %}
+                </td>
+                <td>
+                    {% if current_user.can(Permission.PUBLISH_VIDEOS) %}
+                        {% if job.status in ('pending', 'retrying') %}
+                        <form method="post" action="{{ url_for('videos.cancel_job', job_id=job.id) }}" class="inline">
+                            {{ action_form.hidden_tag() }}
+                            <button class="btn btn-sm btn-danger">Cancel</button>
+                        </form>
+                        {% elif job.status in ('failed', 'cancelled') %}
+                        <form method="post" action="{{ url_for('videos.retry_job', job_id=job.id) }}" class="inline">
+                            {{ action_form.hidden_tag() }}
+                            <button class="btn btn-sm">Retry</button>
+                        </form>
+                        {% endif %}
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8" class="table-empty">Nothing has been queued yet.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {{ render_pagination(pagination, 'videos.jobs') }}
+</div>
+{% endblock %}

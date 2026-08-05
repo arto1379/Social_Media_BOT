@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% from "partials/_pagination.html" import render_pagination %}
+{% block title %}Videos - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Video library</h1>
+        <p class="subtitle">
+            {{ library.ready_total }} ready to publish
+            ({{ library.ready_monetizable }} monetisable,
+            {{ library.ready_royalty_free }} royalty-free),
+            {{ library.awaiting_rights }} awaiting rights confirmation.
+        </p>
+    </div>
+    {% if current_user.can(Permission.MANAGE_VIDEOS) %}
+    <div class="page-actions">
+        <a class="btn btn-primary" href="{{ url_for('videos.create') }}">Add video</a>
+    </div>
+    {% endif %}
+</div>
+
+{# --- Filters ---------------------------------------------------------- #}
+<form method="get" class="filter-bar">
+    <div class="field">
+        <label for="q">Search</label>
+        <input type="text" id="q" name="q" value="{{ search }}" placeholder="title or tag">
+    </div>
+    <div class="field">
+        <label for="status">Status</label>
+        <select id="status" name="status">
+            <option value="">All</option>
+            {% for value in statuses %}
+            <option value="{{ value }}" {{ 'selected' if status_filter == value }}>{{ value|title }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="field">
+        <label for="license">Rights</label>
+        <select id="license" name="license">
+            <option value="">All</option>
+            {% for value in licenses %}
+            <option value="{{ value }}" {{ 'selected' if license_filter == value }}>{{ license_labels[value] }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn">Filter</button>
+    <a class="btn btn-sm" href="{{ url_for('videos.index') }}">Reset</a>
+</form>
+
+<div class="card">
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th></th>
+                <th>Title</th>
+                <th>Rights</th>
+                <th>Format</th>
+                <th>Status</th>
+                <th class="numeric">Views</th>
+                <th>Added</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for video in videos %}
+            <tr>
+                <td>
+                    {% if video.thumbnail_path %}
+                    <img class="video-thumb" alt=""
+                         src="{{ url_for('videos.media', relative_path=video.thumbnail_path) }}">
+                    {% else %}
+                    <div class="video-thumb"></div>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('videos.detail', video_id=video.id) }}">{{ video.title }}</a>
+                    <div class="faint small">{{ video.tag_list[:4]|join(', ') }}</div>
+                </td>
+                <td>
+                    <span class="badge {{ 'badge-ok' if video.is_monetizable
+                                          else ('badge-warn' if video.license_type == 'royalty_free'
+                                          else 'badge-danger') }}">
+                        {{ video.license_label }}
+                    </span>
+                    {% if not video.rights_confirmed %}
+                    <div class="faint small">not confirmed</div>
+                    {% endif %}
+                </td>
+                <td class="small">
+                    {% if video.is_shorts_ready %}
+                    <span class="badge badge-ok">Shorts</span>
+                    {% else %}
+                    <span class="badge badge-warn" title="{{ video.format_notes }}">needs work</span>
+                    {% endif %}
+                    <div class="faint">
+                        {{ video.width or '?' }}x{{ video.height or '?' }},
+                        {{ video.duration_seconds|duration }}
+                    </div>
+                </td>
+                <td>
+                    <span class="badge {{ 'badge-ok' if video.status == 'published'
+                                          else ('badge-danger' if video.status == 'failed'
+                                          else 'badge-neutral') }}">{{ video.status }}</span>
+                </td>
+                <td class="numeric">
+                    {{ latest_stats[video.id].views|number if video.id in latest_stats else '-' }}
+                </td>
+                <td class="small nowrap faint">{{ video.created_at|since }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="table-empty">
+                    No videos match. {% if current_user.can(Permission.MANAGE_VIDEOS) %}
+                    <a href="{{ url_for('videos.create') }}">Add one</a>.{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {{ render_pagination(pagination, 'videos.index',
+                         {'q': search, 'status': status_filter, 'license': license_filter}) }}
+</div>
+{% endblock %}

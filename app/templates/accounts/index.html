@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Accounts - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Accounts</h1>
+        <p class="subtitle">
+            Channels the bot may publish to. Tokens are encrypted before they
+            are stored and are never shown here.
+        </p>
+    </div>
+    <div class="page-actions">
+        <a class="btn btn-primary" href="{{ url_for('accounts.create') }}">Connect an account</a>
+    </div>
+</div>
+
+{# ---------------------------------------------------------------------- #}
+{# Connected accounts                                                     #}
+{# ---------------------------------------------------------------------- #}
+<div class="card">
+    <div class="card-title">Connected accounts</div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr><th>Name</th><th>Platform</th><th>Channel</th><th>Status</th><th>Token expires</th><th></th></tr>
+            </thead>
+            <tbody>
+            {% for account in accounts %}
+            <tr>
+                <td>
+                    {{ account.display_name }}
+                    {% if account.is_default %}<span class="badge badge-info">default</span>{% endif %}
+                </td>
+                <td>{{ account.platform }}</td>
+                <td class="small mono">
+                    {{ account.remote_id or '-' }}
+                    {% if account.remote_handle %}<div class="faint">{{ account.remote_handle }}</div>{% endif %}
+                </td>
+                <td>
+                    <span class="badge {{ 'badge-ok' if account.status_label == 'connected'
+                                          else ('badge-danger' if account.status_label == 'error'
+                                          else 'badge-warn') }}">{{ account.status_label }}</span>
+                    {% if account.last_error %}
+                    <div class="faint small" title="{{ account.last_error }}">{{ account.last_error[:90] }}</div>
+                    {% endif %}
+                </td>
+                <td class="small nowrap">{{ account.token_expires_at|datetime }}</td>
+                <td>
+                    <div class="btn-row">
+                        <form method="post" action="{{ url_for('accounts.test', account_id=account.id) }}" class="inline">
+                            {{ action_form.hidden_tag() }}
+                            <button class="btn btn-sm">Test</button>
+                        </form>
+                        <a class="btn btn-sm" href="{{ url_for('accounts.connect', account_id=account.id) }}">
+                            {{ 'Reconnect' if account.is_connected else 'Connect' }}
+                        </a>
+                        <form method="post" action="{{ url_for('accounts.toggle', account_id=account.id) }}" class="inline">
+                            {{ action_form.hidden_tag() }}
+                            <button class="btn btn-sm">{{ 'Disable' if account.is_active else 'Enable' }}</button>
+                        </form>
+                        {% if account.is_connected %}
+                        <form method="post" action="{{ url_for('accounts.disconnect', account_id=account.id) }}" class="inline">
+                            {{ action_form.hidden_tag() }}
+                            <button class="btn btn-sm btn-danger"
+                                    data-confirm="Delete the stored tokens for '{{ account.display_name }}'?">
+                                Disconnect
+                            </button>
+                        </form>
+                        {% else %}
+                        <form method="post" action="{{ url_for('accounts.delete', account_id=account.id) }}" class="inline">
+                            {{ action_form.hidden_tag() }}
+                            <button class="btn btn-sm btn-danger"
+                                    data-confirm="Delete the account record '{{ account.display_name }}'?">
+                                Delete
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="table-empty">
+                No account is connected. Nothing can be published until you connect one.
+            </td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# ---------------------------------------------------------------------- #}
+{# Platform setup instructions                                            #}
+{# ---------------------------------------------------------------------- #}
+<div class="card">
+    <div class="card-title">Platform integrations</div>
+    {% for adapter in adapters %}
+    <div class="health-item">
+        <span class="health-dot {{ 'health-ok' if adapter.configured else 'health-warn' }}"></span>
+        <div style="flex:1">
+            <div class="health-title">
+                {{ adapter.display_name }}
+                {% if adapter.supports_trends %}<span class="badge badge-neutral">trends</span>{% endif %}
+                {% if adapter.supports_revenue %}<span class="badge badge-neutral">revenue</span>{% endif %}
+            </div>
+            <div class="health-detail">
+                {{ 'API credentials are configured.' if adapter.configured else adapter.hint }}
+            </div>
+            <div class="health-detail" style="margin-top:.3rem">
+                Redirect URI to register with the platform:
+                <code class="mono">{{ adapter.redirect_uri }}</code>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    <p class="field-help" style="margin-top:.8rem">
+        The redirect URI must match <strong>exactly</strong>, including https and
+        any trailing path. A mismatch is by far the most common reason a
+        connection fails - see CONFIGURE.md for the full walkthrough.
+    </p>
+</div>
+{% endblock %}

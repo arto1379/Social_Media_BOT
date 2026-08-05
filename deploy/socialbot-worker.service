@@ -1,0 +1,50 @@
+# =============================================================================
+#  socialbot-worker.service - background automation
+#
+#  Runs the scheduler that plans and performs automatic uploads, collects
+#  statistics and researches trends. It serves no HTTP.
+#
+#  This MUST stay a single process. Two copies would each plan an upload for
+#  the same video and publish it twice, so the unit deliberately has no
+#  concept of workers or instances.
+# =============================================================================
+
+[Unit]
+Description=Social Media BOT - background worker
+Documentation=file://@INSTALL_DIR@/README.md
+After=network-online.target socialbot.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=@APP_USER@
+Group=@APP_GROUP@
+WorkingDirectory=@INSTALL_DIR@
+EnvironmentFile=@INSTALL_DIR@/.env
+
+# The worker forces SCHEDULER_ENABLED=1 internally, so the shared .env can keep
+# it at 0 for the web service without disabling automation.
+ExecStart=@INSTALL_DIR@/.venv/bin/python worker.py
+
+Restart=always
+RestartSec=10
+# Give an upload in flight a chance to finish before the process is killed.
+TimeoutStopSec=120
+KillSignal=SIGTERM
+
+# --- Hardening -------------------------------------------------------------
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadWritePaths=@INSTALL_DIR@/data @INSTALL_DIR@/media @INSTALL_DIR@/logs
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=socialbot-worker
+
+[Install]
+WantedBy=multi-user.target

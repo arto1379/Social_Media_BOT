@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% from "partials/_field.html" import render_field %}
+{% block title %}Connect an account - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Connect an account</h1>
+        <p class="subtitle">
+            Give the channel a name, then authorise the bot on the platform.
+        </p>
+    </div>
+</div>
+
+<div class="card" style="max-width:560px">
+    <div class="notice">
+        Saving this form sends you to the platform's consent screen. Sign in
+        with the Google account that owns the YouTube channel and approve the
+        requested permissions: upload videos, read channel data and read
+        analytics.
+    </div>
+    <form method="post" novalidate>
+        {{ form.hidden_tag() }}
+        {{ render_field(form.platform) }}
+        {{ render_field(form.display_name, placeholder="Main channel") }}
+        {{ render_field(form.is_default) }}
+        <div class="btn-row">
+            <button type="submit" class="btn btn-primary">Save and connect</button>
+            <a class="btn" href="{{ url_for('accounts.index') }}">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

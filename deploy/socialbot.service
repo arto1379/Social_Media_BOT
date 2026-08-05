@@ -1,0 +1,62 @@
+# =============================================================================
+#  socialbot.service - the web interface
+#
+#  Placeholders (@INSTALL_DIR@ and friends) are substituted by
+#  deploy/install_ubuntu.sh. To install by hand, replace them yourself and copy
+#  the file to /etc/systemd/system/socialbot.service.
+#
+#  This service runs the HTTP tier only. The background schedule belongs to
+#  socialbot-worker.service, because gunicorn's several workers would otherwise
+#  each run their own copy of it and publish the same video repeatedly.
+# =============================================================================
+
+[Unit]
+Description=Social Media BOT - web interface
+Documentation=file://@INSTALL_DIR@/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+User=@APP_USER@
+Group=@APP_GROUP@
+WorkingDirectory=@INSTALL_DIR@
+EnvironmentFile=@INSTALL_DIR@/.env
+
+# --workers 3      : enough for a handful of operators on a small VPS.
+# --timeout        : uploads and the ffmpeg conversion run inside a request, so
+#                    the default 30 s would kill a legitimate upload.
+# --bind localhost : nginx terminates TLS and proxies; the app is never
+#                    exposed directly.
+ExecStart=@INSTALL_DIR@/.venv/bin/gunicorn \
+    --workers 3 \
+    --bind @BIND_HOST@:@BIND_PORT@ \
+    --timeout @TIMEOUT@ \
+    --graceful-timeout 60 \
+    --access-logfile - \
+    --error-logfile - \
+    wsgi:application
+
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+Restart=always
+RestartSec=5
+
+# --- Hardening -------------------------------------------------------------
+# The service only ever needs to write to its own directory.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadWritePaths=@INSTALL_DIR@/data @INSTALL_DIR@/media @INSTALL_DIR@/logs
+
+# --- Logging ---------------------------------------------------------------
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=socialbot
+
+[Install]
+WantedBy=multi-user.target

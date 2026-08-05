@@ -1,0 +1,35 @@
+# ---------------------------------------------------------------------------
+# Runtime dependencies for the Social Media BOT.
+# Pinned with ">=" lower bounds so security patches are picked up on rebuild,
+# but with "<" upper bounds so a major release cannot silently break a server.
+# ---------------------------------------------------------------------------
+
+# --- Web framework and its Flask ecosystem ---------------------------------
+Flask>=3.0,<4.0                  # HTTP layer / templating for the web interface
+Flask-SQLAlchemy>=3.1,<4.0       # ORM integration (models live in app/models)
+Flask-Login>=0.6,<0.7            # Session management for the login interface
+Flask-WTF>=1.2,<2.0              # Forms + CSRF protection on every POST
+Flask-Migrate>=4.0,<5.0          # Alembic migrations for schema upgrades
+WTForms>=3.1,<4.0                # Field validation used by Flask-WTF
+Werkzeug>=3.0,<4.0               # WSGI utils + password hashing (PBKDF2/scrypt)
+SQLAlchemy>=2.0,<3.0             # Core ORM
+
+# --- Background automation --------------------------------------------------
+APScheduler>=3.10,<4.0           # Cron/interval jobs: auto upload, stats, trends
+
+# --- Google / YouTube API ---------------------------------------------------
+google-api-python-client>=2.120,<3.0   # YouTube Data + Analytics API clients
+google-auth>=2.28,<3.0                 # Credential objects and refresh logic
+google-auth-oauthlib>=1.2,<2.0         # OAuth 2.0 installed/web app flow
+google-auth-httplib2>=0.2,<1.0         # httplib2 transport for the API client
+
+# --- Security / configuration ----------------------------------------------
+cryptography>=42.0                # Fernet encryption for stored OAuth tokens
+python-dotenv>=1.0,<2.0           # Loads .env into the process environment
+
+# --- Production servers -----------------------------------------------------
+gunicorn>=21.2,<24.0; platform_system != "Windows"   # WSGI server on Ubuntu
+waitress>=3.0,<4.0; platform_system == "Windows"     # WSGI server on Windows
+
+# --- Misc -------------------------------------------------------------------
+requests>=2.31,<3.0               # Generic HTTP (health checks, webhooks)

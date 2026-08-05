@@ -1,0 +1,132 @@
+{# ==========================================================================
+   Base layout: sidebar navigation + content column.
+
+   The navigation is permission-aware - every link is wrapped in a check
+   against the signed-in user's permissions, so a user only ever sees the parts
+   of the site they can actually open. The view decorators enforce the same
+   rules server-side; hiding a link is convenience, not security.
+   ========================================================================== #}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{% block title %}{{ app_name }}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>&#127909;</text></svg>">
+</head>
+<body>
+{% if current_user.is_authenticated %}
+<div class="layout">
+    {# ------------------------------------------------------------------ #}
+    {# Sidebar                                                            #}
+    {# ------------------------------------------------------------------ #}
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">SB</div>
+            <div>
+                <div class="brand-text">{{ app_name }}</div>
+                <div class="brand-version">v{{ app_version }}</div>
+            </div>
+        </div>
+
+        <nav class="nav-group">
+            <div class="nav-heading">Overview</div>
+            {% if current_user.can(Permission.VIEW_DASHBOARD) %}
+            <a class="nav-link {{ 'active' if request.endpoint == 'dashboard.index' }}"
+               href="{{ url_for('dashboard.index') }}">
+                <span class="nav-icon">&#9635;</span> Dashboard
+            </a>
+            {% endif %}
+            {% if current_user.can(Permission.VIEW_STATISTICS) %}
+            <a class="nav-link {{ 'active' if request.blueprint == 'stats' }}"
+               href="{{ url_for('stats.index') }}">
+                <span class="nav-icon">&#9650;</span> Statistics
+            </a>
+            {% endif %}
+        </nav>
+
+        {% if current_user.can(Permission.VIEW_VIDEOS) or current_user.can(Permission.VIEW_TRENDS) %}
+        <nav class="nav-group">
+            <div class="nav-heading">Content</div>
+            {% if current_user.can(Permission.VIEW_VIDEOS) %}
+            <a class="nav-link {{ 'active' if request.endpoint in ('videos.index', 'videos.detail', 'videos.create', 'videos.edit') }}"
+               href="{{ url_for('videos.index') }}">
+                <span class="nav-icon">&#9654;</span> Videos
+            </a>
+            <a class="nav-link {{ 'active' if request.endpoint == 'videos.jobs' }}"
+               href="{{ url_for('videos.jobs') }}">
+                <span class="nav-icon">&#8645;</span> Upload queue
+            </a>
+            {% endif %}
+            {% if current_user.can(Permission.VIEW_TRENDS) %}
+            <a class="nav-link {{ 'active' if request.blueprint == 'trends' }}"
+               href="{{ url_for('trends.index') }}">
+                <span class="nav-icon">&#9678;</span> Trends
+            </a>
+            {% endif %}
+        </nav>
+        {% endif %}
+
+        {% if current_user.can(Permission.MANAGE_ACCOUNTS)
+              or current_user.can(Permission.MANAGE_SETTINGS)
+              or current_user.can(Permission.MANAGE_USERS)
+              or current_user.can(Permission.VIEW_AUDIT_LOG) %}
+        <nav class="nav-group">
+            <div class="nav-heading">Administration</div>
+            {% if current_user.can(Permission.MANAGE_ACCOUNTS) %}
+            <a class="nav-link {{ 'active' if request.blueprint == 'accounts' }}"
+               href="{{ url_for('accounts.index') }}">
+                <span class="nav-icon">&#128279;</span> Accounts
+            </a>
+            {% endif %}
+            {% if current_user.can(Permission.MANAGE_SETTINGS) %}
+            <a class="nav-link {{ 'active' if request.blueprint == 'settings' }}"
+               href="{{ url_for('settings.index') }}">
+                <span class="nav-icon">&#9881;</span> Settings
+            </a>
+            {% endif %}
+            {% if current_user.can(Permission.MANAGE_USERS) %}
+            <a class="nav-link {{ 'active' if request.endpoint in ('users.index', 'users.create', 'users.edit') }}"
+               href="{{ url_for('users.index') }}">
+                <span class="nav-icon">&#128100;</span> Users &amp; roles
+            </a>
+            {% endif %}
+            {% if current_user.can(Permission.VIEW_AUDIT_LOG) %}
+            <a class="nav-link {{ 'active' if request.endpoint == 'users.audit_log' }}"
+               href="{{ url_for('users.audit_log') }}">
+                <span class="nav-icon">&#128203;</span> Audit log
+            </a>
+            {% endif %}
+        </nav>
+        {% endif %}
+
+        <div class="sidebar-footer">
+            <a class="user-chip" href="{{ url_for('auth.profile') }}" style="text-decoration:none">
+                <span class="user-name">{{ current_user.full_name or current_user.username }}</span>
+                <span class="user-role">{{ current_user.role_name }}</span>
+            </a>
+            <form method="post" action="{{ url_for('auth.logout') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm" style="width:100%">Sign out</button>
+            </form>
+        </div>
+    </aside>
+
+    {# ------------------------------------------------------------------ #}
+    {# Main content                                                        #}
+    {# ------------------------------------------------------------------ #}
+    <main class="content">
+        {% include "partials/_flashes.html" %}
+        {% block content %}{% endblock %}
+    </main>
+</div>
+{% else %}
+    {# Signed-out pages (login) render without the chrome. #}
+    {% block anonymous_content %}{% endblock %}
+{% endif %}
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

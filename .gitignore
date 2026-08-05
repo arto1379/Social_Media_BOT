@@ -1,0 +1,38 @@
+# --- Secrets: never commit these -------------------------------------------
+.env
+*.key
+secrets/
+client_secret*.json
+instance/
+
+# --- Runtime data -----------------------------------------------------------
+data/
+media/
+logs/
+*.db
+*.sqlite
+*.sqlite3
+
+# --- Python -----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+
+# --- Tooling ----------------------------------------------------------------
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# --- Editors / OS -----------------------------------------------------------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
